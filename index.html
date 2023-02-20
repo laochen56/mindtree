@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>mindtree</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/org-tree.css">
+</head>
+<body>
+<div id="app" class="container">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <form class="form-horizontal row">
+                    <div class="col-md-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" v-model="horizontal" > 横屏
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" v-model="collapsable"> 折叠
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" v-model="expandAll" @change="expandChange"> 展示所有
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <p><br></p>
+        <div class="text-center">
+            <vue2-org-tree
+                    :data="data"
+                    :horizontal="horizontal"
+                    :collapsable="collapsable"
+                    :render-content="renderContent"
+                    @on-expand="onExpand"
+                    @on-node-click="onNodeClick"
+            />
+        </div>
+    </div>
+</div>
+<script src="js/vue.min.js"></script>
+<script src="js/vue-org-tree.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            data: {
+                label: '诊断信息',
+                children: [{
+
+                    label: '方式一（根据id记录）',
+                    children: [{
+                        label: 'sid(如读码/清码/数据流/动作测试)',
+                        children:[
+                            { label: '诊断结果（成功/失败）',
+                                children:[
+                                    {label:'功能表标记-用户'},
+                                    {label: '研发自测'},
+                                    {label: '软测'},
+                                    {label: '实测'},
+                                    {label: '总成功次数'}
+                                ]
+                            },
+                            {label: '诊断命令（OBD收发数据）'}
+                        ]
+                    }, {
+                        label: '诊断命令（OBD收发数据）'
+                    }, {
+                        label: '功能id（特殊功能）',
+                        children:[
+                            { label: '诊断结果（成功/失败）',
+                                children:[
+                                    {label:'功能表标记-用户'},
+                                    {label: '研发自测'},
+                                    {label: '软测'},
+                                    {label: '实测'},
+                                    {label: '总成功次数'}
+                                ]
+                            },
+                            {label: '诊断命令（OBD收发数据）'}
+                        ]
+                    }]
+                }, {
+                    label: '方式二（根据菜单路径记录）',
+                    children: [{
+                        label: '一级菜单'
+                    }, {
+                        label: '诊断命令（OBD收发数据）'
+                    }]
+                }]
+            },
+            expandAll: false,
+            horizontal: false,
+            collapsable: true
+        },
+        methods: {
+            labelClassName: function(data) {
+                return 'clickable-node'
+            },
+            renderContent: function(h, data) {
+                return data.label
+            },
+            onExpand: function(e, data) {
+                if ('expand' in data) {
+                    data.expand = !data.expand
+
+                    if (!data.expand && data.children) {
+                        this.collapse(data.children)
+                    }
+                } else {
+                    this.$set(data, 'expand', true)
+                }
+            },
+            onNodeClick: function(e, data) {
+                console.log('onNodeClick: %o', data)
+                this.$set(data, 'selectedKey', !data.selectedKey)
+            },
+            collapse: function(list) {
+                var _this = this
+                list.forEach(function(child) {
+                    if (child.expand) {
+                        child.expand = false
+                    }
+
+                    child.children && _this.collapse(child.children)
+                })
+            },
+            expandChange: function() {
+                this.toggleExpand(this.data, this.expandAll)
+            },
+            toggleExpand: function(data, val) {
+                var _this = this
+                if (Array.isArray(data)) {
+                    data.forEach(function(item){
+                        _this.$set(item, 'expand', val)
+                        if (item.children) {
+                            _this.toggleExpand(item.children, val)
+                        }
+                    })
+                } else {
+                    this.$set(data, 'expand', val)
+                    if (data.children) {
+                        _this.toggleExpand(data.children, val)
+                    }
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>
